@@ -1,10 +1,16 @@
 package com.ysda.bigdata;
 
+import com.ysda.bigdata.preprocess.DataToMatrixConverterFactory;
+import com.ysda.bigdata.preprocess.IDataToMatrixFileConverter;
+import com.ysda.bigdata.utils.AlsToolConfig;
+import com.ysda.bigdata.utils.FastScanner;
+import com.ysda.bigdata.utils.StopWatch;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashSet;
 
 /**
  * Created by xakl on 12.04.2016.
@@ -21,8 +27,20 @@ public class AlsTool {
             return;
         }
 
-        System.out.println("Hello world!");
+        if (config.getMode() == AlsToolConfig.ExecutionMode.PREPROCESSING) {
+            IDataToMatrixFileConverter converter = DataToMatrixConverterFactory.getConverter(config);
+            converter.doConversion(config);
+            return;
+        }
+
         try {
+            if (CheckDatasetGrouppedByRow(config)) {
+                System.out.println("Dataset is grouped by rows.");
+            } else {
+                System.out.println("Dataset is not grouped by rows.");
+                return;
+            }
+
             StopWatch timer = new StopWatch();
             timer.start();
             FastScanner scanner = new FastScanner(config.getInputFilePath());
@@ -40,5 +58,23 @@ public class AlsTool {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static boolean CheckDatasetGrouppedByRow(AlsToolConfig config) throws IOException {
+        HashSet<String> uniqueRows = new HashSet<String>();
+        FastScanner scanner = new FastScanner(config.getInputFilePath());
+        String line = scanner.nextLine();
+        String currentRow = null;
+        while (line != null) {
+            String newRow = line.split(" ")[0];
+            if (newRow != currentRow) {
+                if (uniqueRows.contains(newRow)) {
+                    return false;
+                }
+                uniqueRows.add(newRow);
+            }
+            line = scanner.nextLine();
+        }
+        return true;
     }
 }

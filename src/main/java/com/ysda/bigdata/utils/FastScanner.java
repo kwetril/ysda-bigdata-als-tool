@@ -1,4 +1,4 @@
-package com.ysda.bigdata;
+package com.ysda.bigdata.utils;
 
 import java.io.*;
 import java.util.StringTokenizer;
@@ -18,7 +18,24 @@ public class FastScanner {
         bufferedReader = new BufferedReader(new InputStreamReader(System.in));
     }
 
-    String next() throws IOException {
+    public String nextLine() throws IOException {
+        return  bufferedReader.readLine();
+    }
+
+    public RatingDataRecord nextRatingDataRecord(String splitRegex) throws IOException {
+        String line = bufferedReader.readLine();
+        if (line == null) {
+            return  null;
+        }
+        String[] lineElements = line.split(splitRegex);
+        RatingDataRecord result = new RatingDataRecord();
+        result.rowId = lineElements[0];
+        result.columnId = lineElements[1];
+        result.rating = Double.parseDouble(lineElements[2]);
+        return result;
+    }
+
+    public String next() throws IOException {
         while (tokenizer == null || !tokenizer.hasMoreElements()) {
             String line = bufferedReader.readLine();
             if (line == null) {
@@ -29,15 +46,15 @@ public class FastScanner {
         return tokenizer.nextToken();
     }
 
-    int nextInt() throws IOException {
+    public int nextInt() throws IOException {
         return Integer.parseInt(next());
     }
 
-    long nextLong() throws IOException {
+    public long nextLong() throws IOException {
         return Long.parseLong(next());
     }
 
-    double nextDouble() throws IOException {
+    public double nextDouble() throws IOException {
         return Double.parseDouble(next());
     }
 }

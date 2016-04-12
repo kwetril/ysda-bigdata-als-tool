@@ -1,4 +1,4 @@
-package com.ysda.bigdata;
+package com.ysda.bigdata.utils;
 
 /**
  * Created by xakl on 12.04.2016.
