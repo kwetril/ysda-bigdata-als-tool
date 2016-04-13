@@ -1,14 +1,20 @@
 package com.ysda.bigdata;
 
+import com.ysda.bigdata.als.IAlsAlgorithm;
+import com.ysda.bigdata.als.ISparseMatrix;
+import com.ysda.bigdata.als.MatrixFactorizationResult;
+import com.ysda.bigdata.als.local.FileSparseMatrix;
+import com.ysda.bigdata.als.local.LocalAlsAlgorithm;
 import com.ysda.bigdata.preprocess.DataToMatrixConverterFactory;
 import com.ysda.bigdata.preprocess.IDataToMatrixFileConverter;
 import com.ysda.bigdata.utils.AlsToolConfig;
+import com.ysda.bigdata.utils.DenseMatrixWriter;
 import com.ysda.bigdata.utils.FastScanner;
 import com.ysda.bigdata.utils.StopWatch;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
-import java.io.FileNotFoundException;
+import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 
@@ -31,50 +37,41 @@ public class AlsTool {
             IDataToMatrixFileConverter converter = DataToMatrixConverterFactory.getConverter(config);
             converter.doConversion(config);
             return;
-        }
+        } else {
+            try {
+                ISparseMatrix ratingMatrix = null;
+                StopWatch timer = new StopWatch();
+                timer.start();
+                ratingMatrix = new FileSparseMatrix(config.getInputFilePath());
+                ISparseMatrix transposedRatingMatrix = new FileSparseMatrix(config.getTransposedInputFilePath());
+                int numFactors = config.getNumFactors();
+                double regCoefficient = config.getRegCoefficient();
+                IAlsAlgorithm alsAlgorithm = new LocalAlsAlgorithm();
+                alsAlgorithm.init(ratingMatrix, transposedRatingMatrix, numFactors, regCoefficient);
+                MatrixFactorizationResult result = alsAlgorithm.doIterations(1);
 
-        try {
-            if (CheckDatasetGrouppedByRow(config)) {
-                System.out.println("Dataset is grouped by rows.");
-            } else {
-                System.out.println("Dataset is not grouped by rows.");
+                File outputFolder = new File(config.getOutputDirectoryPath());
+                if (outputFolder.exists()) {
+                    System.out.println("Output directory already exists.");
+                    return;
+                }
+
+                if(!outputFolder.mkdir()) {
+                    System.out.println("Output directory was not created.");
+                    return;
+                }
+
+                String rowFactorsFilePath = new File(outputFolder, "row-factors.dat").getAbsolutePath();
+                String colFactorsFilePath = new File(outputFolder, "col-factors.dat").getAbsolutePath();
+                DenseMatrixWriter matrixWriter = new DenseMatrixWriter();
+                matrixWriter.writeMatrix(rowFactorsFilePath, result.rowFactorsMatrix);
+                matrixWriter.writeMatrix(colFactorsFilePath, result.colFactorsMatrix);
+                timer.stop();
+                System.out.printf("Elapsed time: %s ms", timer.getElapsedTime());
+            } catch (IOException e) {
+                e.printStackTrace();
                 return;
             }
-
-            StopWatch timer = new StopWatch();
-            timer.start();
-            FastScanner scanner = new FastScanner(config.getInputFilePath());
-            long wordCount = 0;
-            String word = scanner.next();
-            while (word != null) {
-                wordCount++;
-                word = scanner.next();
-            }
-            timer.stop();
-            System.out.printf("Word count: %s\n", wordCount);
-            System.out.printf("Elapsed time: %s ms\n", timer.getElapsedTime());
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-    }
-
-    private static boolean CheckDatasetGrouppedByRow(AlsToolConfig config) throws IOException {
-        HashSet<String> uniqueRows = new HashSet<String>();
-        FastScanner scanner = new FastScanner(config.getInputFilePath());
-        String line = scanner.nextLine();
-        String currentRow = null;
-        while (line != null) {
-            String newRow = line.split(" ")[0];
-            if (newRow != currentRow) {
-                if (uniqueRows.contains(newRow)) {
-                    return false;
-                }
-                uniqueRows.add(newRow);
-            }
-            line = scanner.nextLine();
-        }
-        return true;
     }
 }

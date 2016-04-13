@@ -13,4 +13,5 @@ public interface IDenseMatrix {
     IDenseMatrix setRow(int rowIndex, double[] rowData);
     IDenseMatrix inverse();
     IDenseMatrix transpose();
+    double[][] getData();
 }

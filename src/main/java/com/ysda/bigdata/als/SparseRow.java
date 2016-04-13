@@ -11,6 +11,12 @@ public class SparseRow {
     private int[] colIndices;
     private  double[] values;
 
+    public SparseRow(int rowIndex, int[] colIndices, double[] values) {
+        this.rowIndex = rowIndex;
+        this.colIndices = colIndices;
+        this.values = values;
+    }
+
     public int getNumElements() {
         return colIndices.length;
     }

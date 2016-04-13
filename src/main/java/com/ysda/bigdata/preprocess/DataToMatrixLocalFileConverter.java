@@ -1,8 +1,12 @@
 package com.ysda.bigdata.preprocess;
 
+import com.ysda.bigdata.als.ISparseMatrix;
+import com.ysda.bigdata.als.local.MemorySparseMatrixBuilder;
+import com.ysda.bigdata.als.local.SparseMatrixWriter;
 import com.ysda.bigdata.utils.AlsToolConfig;
 import com.ysda.bigdata.utils.FastScanner;
 import com.ysda.bigdata.utils.RatingDataRecord;
+import com.ysda.bigdata.utils.StopWatch;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,7 +20,11 @@ import java.util.Map;
  */
 public class DataToMatrixLocalFileConverter implements IDataToMatrixFileConverter {
     public void doConversion(AlsToolConfig config) {
+        StopWatch timer = new StopWatch();
+        timer.start();
         FastScanner scanner;
+        MemorySparseMatrixBuilder ratingMatrixBuilder = new MemorySparseMatrixBuilder();
+        MemorySparseMatrixBuilder transposedRatingMatrixBuilder = new MemorySparseMatrixBuilder();
         try {
             scanner = new FastScanner(config.getInputFilePath());
         } catch (FileNotFoundException e) {
@@ -25,29 +33,13 @@ public class DataToMatrixLocalFileConverter implements IDataToMatrixFileConverte
             return;
         }
 
-        File outputFolder = new File(config.getOutputDirectoryPath());
-        if (outputFolder.exists()) {
-            System.out.println("Output directory already exists.");
-            return;
-        }
-
-        if(!outputFolder.mkdir()) {
-            System.out.println("Output directory was not created.");
-            return;
-        }
-
-        String matrixFilePath = new File(outputFolder, "matrix.dat").getAbsolutePath();
-        String rowsValue2IdFilePath = new File(outputFolder, "rows-value2id.dat").getAbsolutePath();
-        String colsValue2IdFilePath = new File(outputFolder, "cols-value2id.dat").getAbsolutePath();
-
+        String separator = config.getLineSeparator();
         HashMap<String, Integer> rowValueIdMap = new HashMap<>();
         HashMap<String, Integer> colValueIdMap = new HashMap<>();
         int nextRowId = 0;
         int nextColId = 0;
         int curRowId, curColId;
-        String separator = config.getLineSeparator();
-
-        try (FileWriter matrixFile = new FileWriter(matrixFilePath)) {
+        try {
             RatingDataRecord ratingRecord = scanner.nextRatingDataRecord(separator);
             while (ratingRecord != null) {
                 if (rowValueIdMap.containsKey(ratingRecord.rowId)) {
@@ -66,9 +58,43 @@ public class DataToMatrixLocalFileConverter implements IDataToMatrixFileConverte
                     nextColId++;
                 }
 
-                matrixFile.write(String.format("%s %s %s\n", curRowId, curColId, ratingRecord.rating));
+                ratingMatrixBuilder.addElement(curRowId, curColId, ratingRecord.rating);
+                transposedRatingMatrixBuilder.addElement(curColId, curRowId, ratingRecord.rating);
                 ratingRecord = scanner.nextRatingDataRecord(separator);
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        File outputFolder = new File(config.getOutputDirectoryPath());
+        if (outputFolder.exists()) {
+            System.out.println("Output directory already exists.");
+            return;
+        }
+
+        if(!outputFolder.mkdir()) {
+            System.out.println("Output directory was not created.");
+            return;
+        }
+
+        String matrixFilePath = new File(outputFolder, "matrix.dat").getAbsolutePath();
+        String transposedMatrixFilePath = new File(outputFolder, "transposed-matrix.dat").getAbsolutePath();
+        String rowsValue2IdFilePath = new File(outputFolder, "rows-value2id.dat").getAbsolutePath();
+        String colsValue2IdFilePath = new File(outputFolder, "cols-value2id.dat").getAbsolutePath();
+
+
+        SparseMatrixWriter sparseMatrixWriter = new SparseMatrixWriter();
+        ISparseMatrix ratingMatrix = ratingMatrixBuilder.build();
+        try {
+            sparseMatrixWriter.writeMatrix(matrixFilePath, ratingMatrix);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+        ISparseMatrix transposedRatingMatrix = transposedRatingMatrixBuilder.build();
+        try {
+            sparseMatrixWriter.writeMatrix(transposedMatrixFilePath, transposedRatingMatrix);
         } catch (IOException e) {
             e.printStackTrace();
             return;
@@ -91,5 +117,7 @@ public class DataToMatrixLocalFileConverter implements IDataToMatrixFileConverte
             e.printStackTrace();
             return;
         }
+        timer.stop();
+        System.out.printf("Elapsed time: %s ms\n", timer.getElapsedTime());
     }
 }

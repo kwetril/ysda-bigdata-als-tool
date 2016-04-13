@@ -9,6 +9,15 @@ public class AlsToolConfig {
     @Option(name="-input", required=true, usage="Path to input file")
     private String inputFilePath;
 
+    @Option(name="-t-input", depends={"-f"}, usage="Path to transposed rating matrix file")
+    private String transposedInputFilePath;
+
+    @Option(name="-k", depends={"-f"}, usage="Number of hidden factors to use during factorization")
+    private int numFactors;
+
+    @Option(name="-r", depends={"-f"}, usage="Regularization coefficient to use in ALS algorithm")
+    private double regCoefficient;
+
     @Option(name="-output", required=true, usage="Path to output folder")
     private String outputDirectoryPath;
 
@@ -23,6 +32,14 @@ public class AlsToolConfig {
     @Option(name="-s", aliases={"--separator"}, depends={"-p"},
             usage="Separator to split row-column-rating line")
     private String lineSeparator = ",";
+
+    public int getNumFactors() {
+        return numFactors;
+    }
+
+    public double getRegCoefficient() {
+        return regCoefficient;
+    }
 
     public enum ExecutionMode {
         FACTORIZATION,
@@ -47,6 +64,10 @@ public class AlsToolConfig {
         } else {
             return ExecutionMode.PREPROCESSING;
         }
+    }
+
+    public String getTransposedInputFilePath() {
+        return transposedInputFilePath;
     }
 
     public String getLineSeparator() {

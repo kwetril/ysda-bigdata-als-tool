@@ -5,8 +5,6 @@ import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 
-import java.util.ArrayList;
-
 /**
  * Created by xakl on 13.04.2016.
  */
@@ -63,5 +61,10 @@ public class DenseMatrix implements IDenseMatrix {
     @Override
     public IDenseMatrix transpose() {
         return new DenseMatrix(this.matrix.transpose());
+    }
+
+    @Override
+    public double[][] getData() {
+        return matrix.getData();
     }
 }

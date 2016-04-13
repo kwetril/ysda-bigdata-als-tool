@@ -21,7 +21,8 @@ public class LocalAlsAlgorithm implements IAlsAlgorithm {
         this.transposedRatingMatrix = transposedRatingMatrix;
         this.numFactors = numFactors;
         this.regCoefficient = regCoefficient;
-        this.rowFactorsMatrix = this.colFactorsMatrix = null;
+        this.rowFactorsMatrix = new DenseMatrix(ratingMatrix.getNumRows(), numFactors);
+        this.colFactorsMatrix = new DenseMatrix(transposedRatingMatrix.getNumRows(), numFactors);
     }
 
     @Override
@@ -49,11 +50,14 @@ public class LocalAlsAlgorithm implements IAlsAlgorithm {
     private double[] computeRowFromOptimization(SparseRow ratingsRow, IDenseMatrix factorMatrix) {
         IDenseMatrix rowFactorsSubmatrix = factorMatrix.getSubmatrix(ratingsRow.getColIndices());
         IDenseMatrix transposedRowFactorsSubmatrix = rowFactorsSubmatrix.transpose();
-        double[] result = rowFactorsSubmatrix
-                .multiply(transposedRowFactorsSubmatrix)
+        System.out.println(rowFactorsSubmatrix.getData().length);
+        System.out.println(transposedRowFactorsSubmatrix.getData().length);
+
+        double[] result = transposedRowFactorsSubmatrix
+                .multiply(rowFactorsSubmatrix)
                 .addDiag(regCoefficient)
                 .inverse()
-                .multiply(rowFactorsSubmatrix)
+                .multiply(transposedRowFactorsSubmatrix)
                 .multiply(ratingsRow.getValues());
         return result;
     }
