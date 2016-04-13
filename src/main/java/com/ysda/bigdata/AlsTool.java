@@ -6,6 +6,7 @@ import com.ysda.bigdata.als.MatrixFactorizationResult;
 import com.ysda.bigdata.als.local.FactorizationError;
 import com.ysda.bigdata.als.local.FileSparseMatrix;
 import com.ysda.bigdata.als.local.LocalAlsAlgorithm;
+import com.ysda.bigdata.als.local.LocalMultiThreadAlsAlgorithm;
 import com.ysda.bigdata.preprocess.DataToMatrixConverterFactory;
 import com.ysda.bigdata.preprocess.IDataToMatrixFileConverter;
 import com.ysda.bigdata.utils.AlsToolConfig;
@@ -47,7 +48,8 @@ public class AlsTool {
                 ISparseMatrix transposedRatingMatrix = new FileSparseMatrix(config.getTransposedInputFilePath());
                 int numFactors = config.getNumFactors();
                 double regCoefficient = config.getRegCoefficient();
-                IAlsAlgorithm alsAlgorithm = new LocalAlsAlgorithm();
+                //IAlsAlgorithm alsAlgorithm = new LocalAlsAlgorithm();
+                IAlsAlgorithm alsAlgorithm = new LocalMultiThreadAlsAlgorithm(4);
                 alsAlgorithm.init(ratingMatrix, transposedRatingMatrix, numFactors, regCoefficient);
                 FactorizationError errorCounter = new FactorizationError();
                 MatrixFactorizationResult result = null;
