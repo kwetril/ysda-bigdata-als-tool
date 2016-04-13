@@ -16,14 +16,14 @@ public class LocalMultiThreadAlsAlgorithm implements IAlsAlgorithm {
     private int numFactors;
     private double regCoefficient;
     private ThreadPoolExecutor threadPool;
-    private final Semaphore semaphore;
+    private Semaphore semaphore;
     int queueSize;
+    int numThreads;
 
     public LocalMultiThreadAlsAlgorithm(int numThreads) {
+        this.numThreads = numThreads;
         this.queueSize = 2 * numThreads;
-        BlockingQueue queue = new ArrayBlockingQueue(queueSize);
-        this.threadPool = new ThreadPoolExecutor(numThreads, numThreads, 1, TimeUnit.DAYS, queue);
-        this.semaphore = new Semaphore(queueSize);
+
     }
 
     @Override
@@ -39,10 +39,22 @@ public class LocalMultiThreadAlsAlgorithm implements IAlsAlgorithm {
 
     @Override
     public MatrixFactorizationResult doIterations(int numIterations) {
+        BlockingQueue queue = new ArrayBlockingQueue(queueSize);
+        this.threadPool = new ThreadPoolExecutor(numThreads, numThreads, 1, TimeUnit.DAYS, queue);
+        this.semaphore = new Semaphore(queueSize);
+
         MatrixFactorizationResult result = null;
         for (int i = 0; i < numIterations; i++) {
             result = doIteration();
         }
+
+        this.threadPool.shutdown();
+        try {
+            this.threadPool.awaitTermination(1, TimeUnit.DAYS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         return result;
     }
 
@@ -78,6 +90,7 @@ public class LocalMultiThreadAlsAlgorithm implements IAlsAlgorithm {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         MatrixFactorizationResult result = new MatrixFactorizationResult();
         result.rowFactorsMatrix = rowFactorsMatrix;
         result.colFactorsMatrix = colFactorsMatrix;

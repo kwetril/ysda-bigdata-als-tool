@@ -21,11 +21,15 @@ public class FastScanner {
     }
 
     public String nextLine() throws IOException {
-        return  bufferedReader.readLine();
+        String result = bufferedReader.readLine();
+        if (result == null) {
+            bufferedReader.close();
+        }
+        return result;
     }
 
     public RatingDataRecord nextRatingDataRecord(String splitRegex) throws IOException {
-        String line = bufferedReader.readLine();
+        String line = nextLine();
         if (line == null) {
             return  null;
         }
@@ -38,7 +42,7 @@ public class FastScanner {
     }
 
     public SparseRow nextSparseRow() throws IOException {
-        String line = bufferedReader.readLine();
+        String line = nextLine();
         if (line == null) {
             return null;
         }
@@ -56,7 +60,7 @@ public class FastScanner {
 
     public String next() throws IOException {
         while (tokenizer == null || !tokenizer.hasMoreElements()) {
-            String line = bufferedReader.readLine();
+            String line = nextLine();
             if (line == null) {
                 return null;
             }
