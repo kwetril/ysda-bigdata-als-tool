@@ -3,6 +3,7 @@ package com.ysda.bigdata;
 import com.ysda.bigdata.als.IAlsAlgorithm;
 import com.ysda.bigdata.als.ISparseMatrix;
 import com.ysda.bigdata.als.MatrixFactorizationResult;
+import com.ysda.bigdata.als.local.FactorizationError;
 import com.ysda.bigdata.als.local.FileSparseMatrix;
 import com.ysda.bigdata.als.local.LocalAlsAlgorithm;
 import com.ysda.bigdata.preprocess.DataToMatrixConverterFactory;
@@ -48,7 +49,19 @@ public class AlsTool {
                 double regCoefficient = config.getRegCoefficient();
                 IAlsAlgorithm alsAlgorithm = new LocalAlsAlgorithm();
                 alsAlgorithm.init(ratingMatrix, transposedRatingMatrix, numFactors, regCoefficient);
-                MatrixFactorizationResult result = alsAlgorithm.doIterations(1);
+                FactorizationError errorCounter = new FactorizationError();
+                MatrixFactorizationResult result = null;
+                StopWatch iterTimer = new StopWatch();
+                for (int iter = 1; iter <= 10; iter++) {
+                    iterTimer.start();
+                    result = alsAlgorithm.doIterations(1);
+                    iterTimer.stop();
+                    double error = errorCounter.computeMSE(ratingMatrix,
+                            result.rowFactorsMatrix, result.colFactorsMatrix);
+                    System.out.printf("Iteration %s\n", iter);
+                    System.out.printf("MSE error %s\n", error);
+                    System.out.printf("Iteration time %s\n", iterTimer.getElapsedTime());
+                }
 
                 File outputFolder = new File(config.getOutputDirectoryPath());
                 if (outputFolder.exists()) {

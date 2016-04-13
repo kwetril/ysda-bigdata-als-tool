@@ -5,6 +5,8 @@ import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 
+import java.util.Random;
+
 /**
  * Created by xakl on 13.04.2016.
  */
@@ -12,7 +14,14 @@ public class DenseMatrix implements IDenseMatrix {
     private RealMatrix matrix;
 
     public DenseMatrix(int rows, int cols) {
-        matrix = new Array2DRowRealMatrix(rows, cols);
+        Random generator = new Random();
+        double[][] data = new double[rows][cols];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                data[i][j] = generator.nextDouble();
+            }
+        }
+        matrix = new Array2DRowRealMatrix(data);
     }
 
     private DenseMatrix(RealMatrix matrix) {
@@ -51,6 +60,17 @@ public class DenseMatrix implements IDenseMatrix {
     public IDenseMatrix setRow(int rowIndex, double[] rowData) {
         this.matrix.setRow(rowIndex, rowData);
         return this;
+    }
+
+    @Override
+    public double innerRowsProduct(int rowIndex, IDenseMatrix anotherMatrix, int anotherRowIndex) {
+        double[] firstRow = matrix.getRow(rowIndex);
+        double[] secondRow = ((DenseMatrix) anotherMatrix).matrix.getRow(anotherRowIndex);
+        double result = 0;
+        for (int i = 0; i < firstRow.length; i++) {
+            result += firstRow[i] * secondRow[i];
+        }
+        return result;
     }
 
     @Override

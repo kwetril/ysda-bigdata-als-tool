@@ -11,6 +11,7 @@ public interface IDenseMatrix {
     IDenseMatrix addDiag(double value);
     double[] multiply(double[] vector);
     IDenseMatrix setRow(int rowIndex, double[] rowData);
+    double innerRowsProduct(int rowIndex, IDenseMatrix anotherMatrix, int anotherRowIndex);
     IDenseMatrix inverse();
     IDenseMatrix transpose();
     double[][] getData();

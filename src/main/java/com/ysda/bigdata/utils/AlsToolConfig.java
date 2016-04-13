@@ -6,6 +6,12 @@ import org.kohsuke.args4j.Option;
  * Created by xakl on 12.04.2016.
  */
 public class AlsToolConfig {
+    /** Config example
+     *  -input data/preprocessed/matrix.dat -t-input data/preprocessed/transposed-matrix.dat -k 10 -r 0.01 -output data/factorized --factorize
+     *  -input data/data.txt -output data/preprocessed -s "\t" --preprocess
+     */
+
+
     @Option(name="-input", required=true, usage="Path to input file")
     private String inputFilePath;
 

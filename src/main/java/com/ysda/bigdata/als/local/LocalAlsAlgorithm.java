@@ -50,9 +50,6 @@ public class LocalAlsAlgorithm implements IAlsAlgorithm {
     private double[] computeRowFromOptimization(SparseRow ratingsRow, IDenseMatrix factorMatrix) {
         IDenseMatrix rowFactorsSubmatrix = factorMatrix.getSubmatrix(ratingsRow.getColIndices());
         IDenseMatrix transposedRowFactorsSubmatrix = rowFactorsSubmatrix.transpose();
-        System.out.println(rowFactorsSubmatrix.getData().length);
-        System.out.println(transposedRowFactorsSubmatrix.getData().length);
-
         double[] result = transposedRowFactorsSubmatrix
                 .multiply(rowFactorsSubmatrix)
                 .addDiag(regCoefficient)
