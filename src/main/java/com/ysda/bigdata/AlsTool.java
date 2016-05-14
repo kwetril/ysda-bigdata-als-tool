@@ -1,17 +1,17 @@
 package com.ysda.bigdata;
 
-import com.ysda.bigdata.als.IAlsAlgorithm;
-import com.ysda.bigdata.als.ISparseMatrix;
-import com.ysda.bigdata.als.MatrixFactorizationResult;
+import com.ysda.bigdata.als.IAlsModel;
+import com.ysda.bigdata.als.local.ISparseMatrix;
 import com.ysda.bigdata.als.local.*;
 import com.ysda.bigdata.preprocess.DataToMatrixConverterFactory;
 import com.ysda.bigdata.preprocess.IDataToMatrixFileConverter;
 import com.ysda.bigdata.utils.AlsToolConfig;
-import com.ysda.bigdata.utils.DenseMatrixWriter;
+import com.ysda.bigdata.utils.RatingDataRecord;
 import com.ysda.bigdata.utils.StopWatch;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -41,9 +41,6 @@ public class AlsTool {
         } else {
             RunSparkMode(config);
         }
-
-        if (1 == 1) {
-        }
     }
 
     private static void RunLocalMode(AlsToolConfig config) {
@@ -53,7 +50,6 @@ public class AlsTool {
             return;
         } else {
             try {
-                ISparseMatrix ratingMatrix = null;
                 StopWatch timer = new StopWatch();
                 timer.start();
                 LocalAslInitConfig alsConfig = new LocalAslInitConfig();
@@ -61,18 +57,16 @@ public class AlsTool {
                 alsConfig.transposedRatingMatrix = new FileSparseMatrix(config.getTransposedInputFilePath());
                 alsConfig.numFactors = config.getNumFactors();
                 alsConfig.regCoefficient = config.getRegCoefficient();
-                //IAlsAlgorithm alsAlgorithm = new LocalAlsAlgorithm();
-                IAlsAlgorithm alsAlgorithm = new LocalMultiThreadAlsAlgorithm(4);
-                alsAlgorithm.init(alsConfig);
+                IAlsModel alsModel = new LocalAlsModel();
+                //IAlsAlgorithm alsAlgorithm = new LocalMultiThreadAlsAlgorithm(4);
+                alsModel.init(alsConfig);
                 FactorizationError errorCounter = new FactorizationError();
-                MatrixFactorizationResult result = null;
                 StopWatch iterTimer = new StopWatch();
                 for (int iter = 1; iter <= 10; iter++) {
                     iterTimer.start();
-                    result = alsAlgorithm.doIterations(1);
+                    alsModel.train(1);
                     iterTimer.stop();
-                    double error = errorCounter.computeMSE(ratingMatrix,
-                            result.rowFactorsMatrix, result.colFactorsMatrix);
+                    double error = errorCounter.computeMSE(alsConfig.ratingMatrix, alsModel);
                     System.out.printf("Iteration %s\n", iter);
                     System.out.printf("MSE error %s\n", error);
                     System.out.printf("Iteration time %s\n", iterTimer.getElapsedTime());
@@ -83,17 +77,7 @@ public class AlsTool {
                     System.out.println("Output directory already exists.");
                     return;
                 }
-
-                if(!outputFolder.mkdir()) {
-                    System.out.println("Output directory was not created.");
-                    return;
-                }
-
-                String rowFactorsFilePath = new File(outputFolder, "row-factors.dat").getAbsolutePath();
-                String colFactorsFilePath = new File(outputFolder, "col-factors.dat").getAbsolutePath();
-                DenseMatrixWriter matrixWriter = new DenseMatrixWriter();
-                matrixWriter.writeMatrix(rowFactorsFilePath, result.rowFactorsMatrix);
-                matrixWriter.writeMatrix(colFactorsFilePath, result.colFactorsMatrix);
+                alsModel.save(config.getOutputDirectoryPath());
                 timer.stop();
                 System.out.printf("Elapsed time: %s ms", timer.getElapsedTime());
             } catch (IOException e) {
@@ -118,5 +102,19 @@ public class AlsTool {
             }
         });
         System.out.println(sum);
+
+        JavaRDD<String> inputLines = context.textFile(config.getInputFilePath());
+        final String lineSeparator = config.getLineSeparator();
+        JavaRDD<RatingDataRecord> ratingDataRecords = inputLines.map(new Function<String, RatingDataRecord>() {
+            @Override
+            public RatingDataRecord call(String line) throws Exception {
+                String[] parts = line.split(lineSeparator);
+                RatingDataRecord result = new RatingDataRecord();
+                result.user = parts[0];
+                result.item = parts[1];
+                result.rating = Double.parseDouble(parts[2]);
+                return result;
+            }
+        });
     }
 }

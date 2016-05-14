@@ -1,8 +1,5 @@
 package com.ysda.bigdata.als.local;
 
-import com.ysda.bigdata.als.ISparseMatrix;
-import com.ysda.bigdata.als.SparseRow;
-
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -12,9 +9,8 @@ import java.io.IOException;
 public class SparseMatrixWriter {
     public void writeMatrix(String path, ISparseMatrix matrix) throws IOException {
         try (FileWriter fileWriter = new FileWriter(path)) {
-            fileWriter.write(String.format("%s %s\n", matrix.getNumRows(), matrix.getNumCols()));
             for (SparseRow row : matrix) {
-                int[] indices = row.getColIndices();
+                String[] indices = row.getColIndices();
                 double[] values = row.getValues();
                 StringBuilder rowLine = new StringBuilder();
                 rowLine.append(String.format("%s", row.getRowIndex()));

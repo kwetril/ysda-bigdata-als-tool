@@ -1,6 +1,6 @@
 package com.ysda.bigdata.utils;
 
-import com.ysda.bigdata.als.IDenseMatrix;
+import com.ysda.bigdata.als.local.IDenseMatrix;
 
 import java.io.FileWriter;
 import java.io.IOException;

@@ -1,6 +1,6 @@
 package com.ysda.bigdata.utils;
 
-import com.ysda.bigdata.als.SparseRow;
+import com.ysda.bigdata.als.local.SparseRow;
 
 import java.io.*;
 import java.util.StringTokenizer;
@@ -35,8 +35,8 @@ public class FastScanner {
         }
         String[] lineElements = line.split(splitRegex);
         RatingDataRecord result = new RatingDataRecord();
-        result.rowId = lineElements[0];
-        result.columnId = lineElements[1];
+        result.user = lineElements[0];
+        result.item = lineElements[1];
         result.rating = Double.parseDouble(lineElements[2]);
         return result;
     }
@@ -47,12 +47,12 @@ public class FastScanner {
             return null;
         }
         String[] lineElements = line.split(" ");
-        int rowIndex = Integer.parseInt(lineElements[0]);
-        int[] indices = new int[lineElements.length - 1];
+        String rowIndex = lineElements[0];
+        String[] indices = new String[lineElements.length - 1];
         double[] values = new double[lineElements.length - 1];
         for (int i = 1; i < lineElements.length; i++) {
             String[] indexValuePair = lineElements[i].split(":");
-            indices[i - 1] = Integer.parseInt(indexValuePair[0]);
+            indices[i - 1] = indexValuePair[0];
             values[i - 1] = Double.parseDouble(indexValuePair[1]);
         }
         return new SparseRow(rowIndex, indices, values);

@@ -1,25 +1,24 @@
 package com.ysda.bigdata.als.local;
 
-import com.ysda.bigdata.als.IDenseMatrix;
-import com.ysda.bigdata.als.ISparseMatrix;
-import com.ysda.bigdata.als.SparseRow;
+import com.ysda.bigdata.als.IAlsModel;
 
 /**
  * Created by kwetril on 4/13/16.
  */
 public class FactorizationError {
-    public double computeMSE(ISparseMatrix ratingMatrix, IDenseMatrix rowFactors, IDenseMatrix colFactors) {
+    public double computeMSE(ISparseMatrix ratings, IAlsModel alsModel) {
         double result = 0;
         int numberOfElements = 0;
-        for (SparseRow row : ratingMatrix) {
-            int[] indices = row.getColIndices();
-            double[] values = row.getValues();
-            for (int i = 0; i < row.getNumElements(); i++) {
-                double reconstructedVal = rowFactors.innerRowsProduct(row.getRowIndex(), colFactors, indices[i]);
-                double diff = reconstructedVal - values[i];
+        for (SparseRow row : ratings) {
+            String user = row.getRowIndex();
+            String[] items = row.getColIndices();
+            double[] ratingValues = row.getValues();
+            for (int i = 0; i < items.length; i++) {
+                double reconstructedVal = alsModel.predict(user, items[i]);
+                double diff = reconstructedVal - ratingValues[i];
                 result += diff * diff;
             }
-            numberOfElements += row.getNumElements();
+            numberOfElements += items.length;
         }
         return result / numberOfElements;
     }

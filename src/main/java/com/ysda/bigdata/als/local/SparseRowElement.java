@@ -1,9 +1,9 @@
-package com.ysda.bigdata.als;
+package com.ysda.bigdata.als.local;
 
 /**
  * Created by xakl on 13.04.2016.
  */
 public class SparseRowElement {
-    public int columnIndex;
+    public String columnIndex;
     public double value;
 }

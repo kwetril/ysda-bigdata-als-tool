@@ -1,9 +1,5 @@
 package com.ysda.bigdata.als.local;
 
-import com.ysda.bigdata.als.ISparseMatrix;
-import com.ysda.bigdata.als.SparseRow;
-import com.ysda.bigdata.als.SparseRowElement;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,21 +8,13 @@ import java.util.Map;
  * Created by xakl on 13.04.2016.
  */
 public class MemorySparseMatrixBuilder {
-    HashMap<Integer, ArrayList<SparseRowElement>> data;
-    int numRows;
-    int numCols;
+    HashMap<String, ArrayList<SparseRowElement>> data;
 
     public MemorySparseMatrixBuilder() {
         data = new HashMap<>();
     }
 
-    public MemorySparseMatrixBuilder addElement(int row, int col, double value) {
-        if (row + 1 > numRows) {
-            numRows = row + 1;
-        }
-        if (col + 1 > numCols) {
-            numCols = col + 1;
-        }
+    public MemorySparseMatrixBuilder addElement(String row, String col, double value) {
         SparseRowElement element = new SparseRowElement();
         element.columnIndex = col;
         element.value = value;
@@ -42,8 +30,8 @@ public class MemorySparseMatrixBuilder {
 
     public ISparseMatrix build() {
         ArrayList<SparseRow> rows = new ArrayList<>();
-        for (Map.Entry<Integer, ArrayList<SparseRowElement>> entry : data.entrySet()) {
-            int[] indices = new int[entry.getValue().size()];
+        for (Map.Entry<String, ArrayList<SparseRowElement>> entry : data.entrySet()) {
+            String[] indices = new String[entry.getValue().size()];
             double[] values = new double[indices.length];
             int i = 0;
             for (SparseRowElement element : entry.getValue()) {
@@ -54,6 +42,6 @@ public class MemorySparseMatrixBuilder {
             SparseRow row = new SparseRow(entry.getKey(), indices, values);
             rows.add(row);
         }
-        return new MemorySparseMatrtix(numRows, numCols, rows);
+        return new MemorySparseMatrtix(rows);
     }
 }

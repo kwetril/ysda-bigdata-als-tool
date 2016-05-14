@@ -1,8 +1,5 @@
 package com.ysda.bigdata.als.local;
 
-import com.ysda.bigdata.als.ISparseMatrix;
-import com.ysda.bigdata.als.SparseRow;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -11,27 +8,13 @@ import java.util.Iterator;
  */
 public class MemorySparseMatrtix implements ISparseMatrix {
     ArrayList<SparseRow> rows;
-    int numRows;
-    int numCols;
 
-    public MemorySparseMatrtix(int numRows, int numCols, ArrayList<SparseRow> rows) {
-        this.numRows = numRows;
-        this.numCols = numCols;
+    public MemorySparseMatrtix(ArrayList<SparseRow> rows) {
         this.rows = rows;
     }
 
     @Override
     public Iterator<SparseRow> iterator() {
         return rows.iterator();
-    }
-
-    @Override
-    public int getNumRows() {
-        return numRows;
-    }
-
-    @Override
-    public int getNumCols() {
-        return numCols;
     }
 }

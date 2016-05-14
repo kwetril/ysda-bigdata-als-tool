@@ -1,4 +1,4 @@
-package com.ysda.bigdata.als;
+package com.ysda.bigdata.als.local;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -7,11 +7,11 @@ import java.util.Iterator;
  * Created by xakl on 13.04.2016.
  */
 public class SparseRow {
-    private int rowIndex;
-    private int[] colIndices;
+    private String rowIndex;
+    private String[] colIndices;
     private  double[] values;
 
-    public SparseRow(int rowIndex, int[] colIndices, double[] values) {
+    public SparseRow(String rowIndex, String[] colIndices, double[] values) {
         this.rowIndex = rowIndex;
         this.colIndices = colIndices;
         this.values = values;
@@ -21,11 +21,11 @@ public class SparseRow {
         return colIndices.length;
     }
 
-    public int getRowIndex() {
+    public String getRowIndex() {
         return rowIndex;
     }
 
-    public int[] getColIndices() {
+    public String[] getColIndices() {
         return colIndices;
     }
 

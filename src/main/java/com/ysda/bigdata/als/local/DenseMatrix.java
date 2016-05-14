@@ -1,6 +1,5 @@
 package com.ysda.bigdata.als.local;
 
-import com.ysda.bigdata.als.IDenseMatrix;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -21,6 +20,10 @@ public class DenseMatrix implements IDenseMatrix {
                 data[i][j] = generator.nextDouble();
             }
         }
+        matrix = new Array2DRowRealMatrix(data);
+    }
+
+    public DenseMatrix(double[][] data) {
         matrix = new Array2DRowRealMatrix(data);
     }
 
@@ -60,17 +63,6 @@ public class DenseMatrix implements IDenseMatrix {
     public IDenseMatrix setRow(int rowIndex, double[] rowData) {
         this.matrix.setRow(rowIndex, rowData);
         return this;
-    }
-
-    @Override
-    public double innerRowsProduct(int rowIndex, IDenseMatrix anotherMatrix, int anotherRowIndex) {
-        double[] firstRow = matrix.getRow(rowIndex);
-        double[] secondRow = ((DenseMatrix) anotherMatrix).matrix.getRow(anotherRowIndex);
-        double result = 0;
-        for (int i = 0; i < firstRow.length; i++) {
-            result += firstRow[i] * secondRow[i];
-        }
-        return result;
     }
 
     @Override

@@ -1,6 +1,4 @@
-package com.ysda.bigdata.als;
-
-import java.util.ArrayList;
+package com.ysda.bigdata.als.local;
 
 /**
  * Created by xakl on 13.04.2016.
@@ -11,7 +9,6 @@ public interface IDenseMatrix {
     IDenseMatrix addDiag(double value);
     double[] multiply(double[] vector);
     IDenseMatrix setRow(int rowIndex, double[] rowData);
-    double innerRowsProduct(int rowIndex, IDenseMatrix anotherMatrix, int anotherRowIndex);
     IDenseMatrix inverse();
     IDenseMatrix transpose();
     double[][] getData();

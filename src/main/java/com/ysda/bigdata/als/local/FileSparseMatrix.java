@@ -1,39 +1,18 @@
 package com.ysda.bigdata.als.local;
 
-import com.ysda.bigdata.als.ISparseMatrix;
-import com.ysda.bigdata.als.SparseRow;
 import com.ysda.bigdata.utils.FastScanner;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.concurrent.Exchanger;
 
 /**
  * Created by xakl on 13.04.2016.
  */
 public class FileSparseMatrix implements ISparseMatrix {
-
     private String matrixFilePath;
-    private int numRows;
-    private int numCols;
 
-    public FileSparseMatrix(String matrixFilePath) throws IOException {
+    public FileSparseMatrix(String matrixFilePath) {
         this.matrixFilePath = matrixFilePath;
-        FastScanner scanner = new FastScanner(matrixFilePath);
-        String[] rowsColsPair = scanner.nextLine().split(" ");
-        numRows = Integer.parseInt(rowsColsPair[0]);
-        numCols = Integer.parseInt(rowsColsPair[1]);
-    }
-
-    @Override
-    public int getNumRows() {
-        return numRows;
-    }
-
-    @Override
-    public int getNumCols() {
-        return numCols;
     }
 
     class MatrixFileIterator implements Iterator<SparseRow>
@@ -43,7 +22,6 @@ public class FileSparseMatrix implements ISparseMatrix {
 
         private MatrixFileIterator(String filePath) throws IOException {
             scanner = new FastScanner(filePath);
-            scanner.nextLine();
             nextSparseRow = scanner.nextSparseRow();
         }
 

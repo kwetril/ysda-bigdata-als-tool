@@ -3,12 +3,11 @@ package com.ysda.bigdata.als.local;
 import com.ysda.bigdata.als.*;
 
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by kwetril on 4/13/16.
  */
-public class LocalMultiThreadAlsAlgorithm implements IAlsAlgorithm {
+public class LocalMultiThreadAlsAlgorithm {
     private ISparseMatrix ratingMatrix;
     private ISparseMatrix transposedRatingMatrix;
     private IDenseMatrix rowFactorsMatrix;
@@ -25,8 +24,7 @@ public class LocalMultiThreadAlsAlgorithm implements IAlsAlgorithm {
         this.queueSize = 2 * numThreads;
 
     }
-
-    @Override
+    /*
     public void init(BaseAlsInitConfig config) {
         LocalAslInitConfig localConfig = (LocalAslInitConfig) config;
         this.ratingMatrix = localConfig.ratingMatrix;
@@ -37,7 +35,6 @@ public class LocalMultiThreadAlsAlgorithm implements IAlsAlgorithm {
         this.colFactorsMatrix = new DenseMatrix(transposedRatingMatrix.getNumRows(), numFactors);
     }
 
-    @Override
     public MatrixFactorizationResult doIterations(int numIterations) {
         BlockingQueue queue = new ArrayBlockingQueue(queueSize);
         this.threadPool = new ThreadPoolExecutor(numThreads, numThreads, 1, TimeUnit.DAYS, queue);
@@ -129,4 +126,5 @@ public class LocalMultiThreadAlsAlgorithm implements IAlsAlgorithm {
             }
         }
     }
+    */
 }
