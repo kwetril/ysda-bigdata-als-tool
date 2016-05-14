@@ -31,5 +31,10 @@
             <artifactId>commons-math3</artifactId>
             <version>3.3</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_2.10</artifactId>
+            <version>1.6.0</version>
+        </dependency>
     </dependencies>
 </project>

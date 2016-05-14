@@ -27,12 +27,12 @@ public class LocalMultiThreadAlsAlgorithm implements IAlsAlgorithm {
     }
 
     @Override
-    public void init(ISparseMatrix ratingMatrix, ISparseMatrix transposedRatingMatrix,
-                     int numFactors, double regCoefficient) {
-        this.ratingMatrix = ratingMatrix;
-        this.transposedRatingMatrix = transposedRatingMatrix;
-        this.numFactors = numFactors;
-        this.regCoefficient = regCoefficient;
+    public void init(BaseAlsInitConfig config) {
+        LocalAslInitConfig localConfig = (LocalAslInitConfig) config;
+        this.ratingMatrix = localConfig.ratingMatrix;
+        this.transposedRatingMatrix = localConfig.transposedRatingMatrix;
+        this.numFactors = localConfig.numFactors;
+        this.regCoefficient = localConfig.regCoefficient;
         this.rowFactorsMatrix = new DenseMatrix(ratingMatrix.getNumRows(), numFactors);
         this.colFactorsMatrix = new DenseMatrix(transposedRatingMatrix.getNumRows(), numFactors);
     }

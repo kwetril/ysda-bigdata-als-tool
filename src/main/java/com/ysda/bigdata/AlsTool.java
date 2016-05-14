@@ -3,22 +3,23 @@ package com.ysda.bigdata;
 import com.ysda.bigdata.als.IAlsAlgorithm;
 import com.ysda.bigdata.als.ISparseMatrix;
 import com.ysda.bigdata.als.MatrixFactorizationResult;
-import com.ysda.bigdata.als.local.FactorizationError;
-import com.ysda.bigdata.als.local.FileSparseMatrix;
-import com.ysda.bigdata.als.local.LocalAlsAlgorithm;
-import com.ysda.bigdata.als.local.LocalMultiThreadAlsAlgorithm;
+import com.ysda.bigdata.als.local.*;
 import com.ysda.bigdata.preprocess.DataToMatrixConverterFactory;
 import com.ysda.bigdata.preprocess.IDataToMatrixFileConverter;
 import com.ysda.bigdata.utils.AlsToolConfig;
 import com.ysda.bigdata.utils.DenseMatrixWriter;
-import com.ysda.bigdata.utils.FastScanner;
 import com.ysda.bigdata.utils.StopWatch;
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function2;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by xakl on 12.04.2016.
@@ -35,7 +36,18 @@ public class AlsTool {
             return;
         }
 
-        if (config.getMode() == AlsToolConfig.ExecutionMode.PREPROCESSING) {
+        if (config.getExecutionMode() == AlsToolConfig.ExecutionMode.LOCAL) {
+            RunLocalMode(config);
+        } else {
+            RunSparkMode(config);
+        }
+
+        if (1 == 1) {
+        }
+    }
+
+    private static void RunLocalMode(AlsToolConfig config) {
+        if (config.getOperation() == AlsToolConfig.OperationType.PREPROCESSING) {
             IDataToMatrixFileConverter converter = DataToMatrixConverterFactory.getConverter(config);
             converter.doConversion(config);
             return;
@@ -44,13 +56,14 @@ public class AlsTool {
                 ISparseMatrix ratingMatrix = null;
                 StopWatch timer = new StopWatch();
                 timer.start();
-                ratingMatrix = new FileSparseMatrix(config.getInputFilePath());
-                ISparseMatrix transposedRatingMatrix = new FileSparseMatrix(config.getTransposedInputFilePath());
-                int numFactors = config.getNumFactors();
-                double regCoefficient = config.getRegCoefficient();
+                LocalAslInitConfig alsConfig = new LocalAslInitConfig();
+                alsConfig.ratingMatrix = new FileSparseMatrix(config.getInputFilePath());
+                alsConfig.transposedRatingMatrix = new FileSparseMatrix(config.getTransposedInputFilePath());
+                alsConfig.numFactors = config.getNumFactors();
+                alsConfig.regCoefficient = config.getRegCoefficient();
                 //IAlsAlgorithm alsAlgorithm = new LocalAlsAlgorithm();
                 IAlsAlgorithm alsAlgorithm = new LocalMultiThreadAlsAlgorithm(4);
-                alsAlgorithm.init(ratingMatrix, transposedRatingMatrix, numFactors, regCoefficient);
+                alsAlgorithm.init(alsConfig);
                 FactorizationError errorCounter = new FactorizationError();
                 MatrixFactorizationResult result = null;
                 StopWatch iterTimer = new StopWatch();
@@ -88,5 +101,22 @@ public class AlsTool {
                 return;
             }
         }
+    }
+
+    private static void RunSparkMode(AlsToolConfig config) {
+        SparkConf conf = new SparkConf().setAppName("YSDA BigData ALS Tool").setMaster("local");
+        JavaSparkContext context = new JavaSparkContext(conf);
+        List<Integer> test = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            test.add(i);
+        }
+        JavaRDD<Integer> rdd = context.parallelize(test);
+        int sum = rdd.reduce(new Function2<Integer, Integer, Integer>() {
+            @Override
+            public Integer call(Integer acc, Integer value) throws Exception {
+                return acc + value;
+            }
+        });
+        System.out.println(sum);
     }
 }
