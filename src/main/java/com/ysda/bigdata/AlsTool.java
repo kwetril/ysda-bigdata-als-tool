@@ -50,13 +50,21 @@ public class AlsTool {
             try {
                 StopWatch timer = new StopWatch();
                 timer.start();
-                LocalAslInitConfig alsConfig = new LocalAslInitConfig();
+                LocalAslInitConfig alsConfig;
+                IAlsModel alsModel;
+                if (config.getNumWorkers() == 1) {
+                    alsConfig = new LocalAslInitConfig();
+                    alsModel = new LocalAlsModel();
+                } else {
+                    LocalMultiThreadAlsInitConfig alsMultiThreadConfig = new LocalMultiThreadAlsInitConfig();
+                    alsMultiThreadConfig.numThreads = config.getNumWorkers();
+                    alsConfig = alsMultiThreadConfig;
+                    alsModel = new LocalMultiThreadAlsModel();
+                }
                 alsConfig.ratingMatrix = new FileSparseMatrix(config.getInputFilePath());
                 alsConfig.transposedRatingMatrix = new FileSparseMatrix(config.getTransposedInputFilePath());
                 alsConfig.numFactors = config.getNumFactors();
                 alsConfig.regCoefficient = config.getRegCoefficient();
-                IAlsModel alsModel = new LocalAlsModel();
-                //IAlsAlgorithm alsAlgorithm = new LocalMultiThreadAlsAlgorithm(4);
                 alsModel.init(alsConfig);
                 FactorizationError errorCounter = new FactorizationError();
                 StopWatch iterTimer = new StopWatch();
@@ -73,7 +81,6 @@ public class AlsTool {
                 File outputFile = new File(config.getOutputDirectoryPath());
                 if (outputFile.exists()) {
                     System.out.println("Output file already exists.");
-                    return;
                 }
                 else {
                     alsModel.save(config.getOutputDirectoryPath());

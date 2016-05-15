@@ -40,12 +40,14 @@ public class FactorMatrix {
                 result[i] = generator.nextDouble();
             }
             setRow(row, result);
-            return result;
+            return getRow(row);
         }
     }
 
     void setRow(String row, double[] values) {
-        data.put(row, values);
+        synchronized (data) {
+            data.put(row, values);
+        }
     }
 
     HashMap<String, double[]> getData() {

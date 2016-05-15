@@ -54,6 +54,10 @@ public class AlsToolConfig {
             usage="Separator to split row-column-rating line")
     private String lineSeparator = ",";
 
+    @Option(name="-w", aliases={"--workers"}, forbids={"-S"},
+            usage="Number of worker threads to use during computations (default value: 1).")
+    private int numWorkers = 1;
+
     public int getNumFactors() {
         return numFactors;
     }
@@ -114,6 +118,10 @@ public class AlsToolConfig {
 
     public String getSparkMaster() {
         return sparkMaster;
+    }
+
+    public int getNumWorkers() {
+        return numWorkers;
     }
 }
 

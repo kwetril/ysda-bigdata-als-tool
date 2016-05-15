@@ -3,46 +3,36 @@ package com.ysda.bigdata.als.local;
 import com.ysda.bigdata.als.*;
 
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by kwetril on 4/13/16.
  */
-public class LocalMultiThreadAlsAlgorithm {
+public class LocalMultiThreadAlsModel extends BaseLocalAlsModel {
     private ISparseMatrix ratingMatrix;
     private ISparseMatrix transposedRatingMatrix;
-    private DenseMatrix rowFactorsMatrix;
-    private DenseMatrix colFactorsMatrix;
-    private int numFactors;
-    private double regCoefficient;
     private ThreadPoolExecutor threadPool;
     private Semaphore semaphore;
     int queueSize;
     int numThreads;
 
-    public LocalMultiThreadAlsAlgorithm(int numThreads) {
-        this.numThreads = numThreads;
-        this.queueSize = 2 * numThreads;
-
-    }
-    /*
     public void init(BaseAlsInitConfig config) {
-        LocalAslInitConfig localConfig = (LocalAslInitConfig) config;
+        super.init(config);
+        LocalMultiThreadAlsInitConfig localConfig = (LocalMultiThreadAlsInitConfig) config;
         this.ratingMatrix = localConfig.ratingMatrix;
         this.transposedRatingMatrix = localConfig.transposedRatingMatrix;
-        this.numFactors = localConfig.numFactors;
-        this.regCoefficient = localConfig.regCoefficient;
-        this.rowFactorsMatrix = new DenseMatrix(ratingMatrix.getNumRows(), numFactors);
-        this.colFactorsMatrix = new DenseMatrix(transposedRatingMatrix.getNumRows(), numFactors);
+        this.numThreads = localConfig.numThreads;
+        this.queueSize = 2 * numThreads;
     }
 
-    public MatrixFactorizationResult doIterations(int numIterations) {
+    @Override
+    public void train(int numIterations) {
         BlockingQueue queue = new ArrayBlockingQueue(queueSize);
         this.threadPool = new ThreadPoolExecutor(numThreads, numThreads, 1, TimeUnit.DAYS, queue);
         this.semaphore = new Semaphore(queueSize);
 
-        MatrixFactorizationResult result = null;
         for (int i = 0; i < numIterations; i++) {
-            result = doIteration();
+            doIteration();
         }
 
         this.threadPool.shutdown();
@@ -51,11 +41,9 @@ public class LocalMultiThreadAlsAlgorithm {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        return result;
     }
 
-    private MatrixFactorizationResult doIteration() {
+    private void doIteration() {
         for (SparseRow ratingsRow : ratingMatrix) {
             try {
                 semaphore.acquire();
@@ -63,7 +51,7 @@ public class LocalMultiThreadAlsAlgorithm {
                         rowFactorsMatrix, colFactorsMatrix));
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                return null;
+                return;
             }
         }
         try {
@@ -87,21 +75,16 @@ public class LocalMultiThreadAlsAlgorithm {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        MatrixFactorizationResult result = new MatrixFactorizationResult();
-        result.rowFactorsMatrix = rowFactorsMatrix;
-        result.colFactorsMatrix = colFactorsMatrix;
-        return result;
     }
 
     private class ComputeRowFromOptimizationJob implements Runnable {
         private SparseRow ratingsRow;
-        private IDenseMatrix matrixToOptimize;
-        private IDenseMatrix factorMatrix;
+        private FactorMatrix matrixToOptimize;
+        private FactorMatrix factorMatrix;
         private final Semaphore semaphore;
 
         ComputeRowFromOptimizationJob(Semaphore semaphore, SparseRow ratingsRow,
-                                      IDenseMatrix matrixToOptimize, IDenseMatrix factorMatrix) {
+                                      FactorMatrix matrixToOptimize, FactorMatrix factorMatrix) {
             this.ratingsRow = ratingsRow;
             this.matrixToOptimize = matrixToOptimize;
             this.factorMatrix = factorMatrix;
@@ -111,8 +94,8 @@ public class LocalMultiThreadAlsAlgorithm {
         @Override
         public void run() {
             try {
-                IDenseMatrix rowFactorsSubmatrix = factorMatrix.getSubmatrix(ratingsRow.getColIndices());
-                IDenseMatrix transposedRowFactorsSubmatrix = rowFactorsSubmatrix.transpose();
+                DenseMatrix rowFactorsSubmatrix = factorMatrix.getSubmatrix(ratingsRow.getColIndices());
+                DenseMatrix transposedRowFactorsSubmatrix = rowFactorsSubmatrix.transpose();
                 double[] result = transposedRowFactorsSubmatrix
                         .multiply(rowFactorsSubmatrix)
                         .addDiag(regCoefficient)
@@ -126,5 +109,4 @@ public class LocalMultiThreadAlsAlgorithm {
             }
         }
     }
-    */
 }
