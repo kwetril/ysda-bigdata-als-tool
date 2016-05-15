@@ -42,12 +42,12 @@ public class AlsTool {
     }
 
     private static void RunLocalMode(AlsToolConfig config) {
-        if (config.getOperation() == AlsToolConfig.OperationType.PREPROCESSING) {
-            DataToMatrixLocalFileConverter converter = new DataToMatrixLocalFileConverter();
-            converter.doConversion(config);
-            return;
-        } else {
-            try {
+        try {
+            if (config.getOperation() == AlsToolConfig.OperationType.PREPROCESSING) {
+                DataToMatrixLocalFileConverter converter = new DataToMatrixLocalFileConverter();
+                converter.doConversion(config);
+                return;
+            } else if (config.getOperation() == AlsToolConfig.OperationType.FACTORIZATION) {
                 StopWatch timer = new StopWatch();
                 timer.start();
                 LocalAslInitConfig alsConfig;
@@ -81,16 +81,24 @@ public class AlsTool {
                 File outputFile = new File(config.getOutputDirectoryPath());
                 if (outputFile.exists()) {
                     System.out.println("Output file already exists.");
-                }
-                else {
+                } else {
                     alsModel.save(config.getOutputDirectoryPath());
                 }
                 timer.stop();
                 System.out.printf("Elapsed time: %s ms\n", timer.getElapsedTime());
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
+            } else {
+                StopWatch timer = new StopWatch();
+                timer.start();
+                IAlsModel alsModel = new LocalAlsModel();
+                alsModel.load(config.getModelPath());
+                alsModel.batchPredicition(config.getInputFilePath(), config.getOutputDirectoryPath(),
+                        String.valueOf(config.getLineSeparator()));
+                timer.stop();
+                System.out.printf("Elapsed time: %s ms\n", timer.getElapsedTime());
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
         }
     }
 
@@ -99,57 +107,68 @@ public class AlsTool {
         SparkConf conf = new SparkConf().setAppName("YSDA BigData ALS Tool").setMaster(master);
         JavaSparkContext context = new JavaSparkContext(conf);
 
-        StopWatch timer = new StopWatch();
-        timer.start();
-        final String lineSeparator = config.getLineSeparator();
-        JavaRDD<String> lines = context.textFile(config.getInputFilePath());
-        JavaRDD<RatingDataRecord> records = lines.map(new Function<String, RatingDataRecord>() {
-            @Override
-            public RatingDataRecord call(String line) throws Exception {
-                String[] parts = line.split(lineSeparator);
-                RatingDataRecord result = new RatingDataRecord();
-                result.user = parts[0];
-                result.item = parts[1];
-                result.rating = Double.parseDouble(parts[2]);
-                return result;
+        try {
+            if (config.getOperation() == AlsToolConfig.OperationType.FACTORIZATION) {
+                StopWatch timer = new StopWatch();
+                timer.start();
+                final String lineSeparator = String.valueOf(config.getLineSeparator());
+                JavaRDD<String> lines = context.textFile(config.getInputFilePath());
+                JavaRDD<RatingDataRecord> records = lines.map(new Function<String, RatingDataRecord>() {
+                    @Override
+                    public RatingDataRecord call(String line) throws Exception {
+                        String[] parts = line.split(lineSeparator);
+                        RatingDataRecord result = new RatingDataRecord();
+                        result.user = parts[0];
+                        result.item = parts[1];
+                        result.rating = Double.parseDouble(parts[2]);
+                        return result;
+                    }
+                });
+
+                SparkAlsInitConfig alsConfig = new SparkAlsInitConfig();
+                alsConfig.numFactors = config.getNumFactors();
+                alsConfig.regCoefficient = config.getRegCoefficient();
+                alsConfig.records = records;
+                alsConfig.sparkContext = context;
+
+                FactorizationError errorCounter = new FactorizationError();
+                IAlsModel alsModel = new SparkAlsModel();
+                alsModel.init(alsConfig);
+
+                StopWatch iterTimer = new StopWatch();
+                for (int iter = 1; iter <= 10; iter++) {
+                    iterTimer.start();
+                    alsModel.train(1);
+                    iterTimer.stop();
+                    double error = errorCounter.computeMSE(alsConfig.records, (BaseAlsModel) alsModel);
+                    System.out.printf("Iteration %s\n", iter);
+                    System.out.printf("MSE error %s\n", error);
+                    System.out.printf("Iteration time %s\n", iterTimer.getElapsedTime());
+                }
+
+                File outputFile = new File(config.getOutputDirectoryPath());
+                if (outputFile.exists()) {
+                    System.out.println("Output file already exists.");
+                } else {
+                    alsModel.save(config.getOutputDirectoryPath());
+                }
+
+                timer.stop();
+                System.out.printf("Elapsed time: %s ms\n", timer.getElapsedTime());
+            } else if (config.getOperation() == AlsToolConfig.OperationType.RATING_CALCULATION) {
+                StopWatch timer = new StopWatch();
+                timer.start();
+                SparkAlsModel alsModel = new SparkAlsModel();
+                alsModel.load(config.getModelPath());
+                alsModel.setContext(context);
+                alsModel.batchPredicition(config.getInputFilePath(), config.getOutputDirectoryPath(),
+                        String.valueOf(config.getLineSeparator()));
+                timer.stop();
+                System.out.printf("Elapsed time: %s ms\n", timer.getElapsedTime());
             }
-        });
-
-        SparkAlsInitConfig alsConfig = new SparkAlsInitConfig();
-        alsConfig.numFactors = config.getNumFactors();
-        alsConfig.regCoefficient = config.getRegCoefficient();
-        alsConfig.records = records;
-        alsConfig.sparkContext = context;
-
-        FactorizationError errorCounter = new FactorizationError();
-        IAlsModel alsModel = new SparkAlsModel();
-        alsModel.init(alsConfig);
-
-        StopWatch iterTimer = new StopWatch();
-        for (int iter = 1; iter <= 10; iter++) {
-            iterTimer.start();
-            alsModel.train(1);
-            iterTimer.stop();
-            double error = errorCounter.computeMSE(alsConfig.records, (BaseAlsModel) alsModel);
-            System.out.printf("Iteration %s\n", iter);
-            System.out.printf("MSE error %s\n", error);
-            System.out.printf("Iteration time %s\n", iterTimer.getElapsedTime());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
         }
-
-        File outputFile = new File(config.getOutputDirectoryPath());
-        if (outputFile.exists()) {
-            System.out.println("Output file already exists.");
-        }
-        else {
-            try {
-                alsModel.save(config.getOutputDirectoryPath());
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            }
-        }
-
-        timer.stop();
-        System.out.printf("Elapsed time: %s ms\n", timer.getElapsedTime());
     }
 }

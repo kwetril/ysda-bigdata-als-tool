@@ -1,7 +1,10 @@
 package com.ysda.bigdata.als.local;
 
 import com.ysda.bigdata.als.*;
+import com.ysda.bigdata.utils.FastScanner;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.concurrent.*;
 
 /**
@@ -39,6 +42,19 @@ public class LocalMultiThreadAlsModel extends BaseAlsModel {
             this.threadPool.awaitTermination(1, TimeUnit.DAYS);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void batchPredicition(String inputPath, String outputPath, String lineSeparator) throws IOException {
+        FastScanner scanner = new FastScanner(inputPath);
+        String line = scanner.nextLine();
+        try (FileWriter output = new FileWriter(outputPath)) {
+            while (line != null) {
+                String[] parts = line.split(lineSeparator);
+                double rating = predict(parts[0], parts[1]);
+                output.write(String.format("%s\t%s\t%s\n", parts[0], parts[1], rating));
+            }
         }
     }
 

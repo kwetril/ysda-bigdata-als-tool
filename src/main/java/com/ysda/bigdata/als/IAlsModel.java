@@ -1,5 +1,6 @@
 package com.ysda.bigdata.als;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
@@ -11,4 +12,5 @@ public interface IAlsModel {
     void save(String path) throws IOException;
     void load(String path) throws IOException;
     double predict(String user, String item);
+    void batchPredicition(String inputPath, String outputPath, String lineSeparator) throws IOException;
 }

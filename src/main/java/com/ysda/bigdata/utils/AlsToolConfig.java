@@ -2,16 +2,15 @@ package com.ysda.bigdata.utils;
 
 import org.kohsuke.args4j.Option;
 
-import java.util.concurrent.ExecutorService;
-
 /**
  * Created by xakl on 12.04.2016.
  */
 public class AlsToolConfig {
     /** Config example
-     *  -input data/preprocessed/matrix.dat -t-input data/preprocessed/transposed-matrix.dat -k 10 -r 0.01 -output data/factorized --factorize
+     *  -input data/preprocessed/matrix.dat -t-input data/preprocessed/transposed-matrix.dat -k 10 -l 0.01 -output data/factorized --factorize
      *  -input data/data.txt -output data/preprocessed -s "\t" --preprocess
-     *  -input data/data.txt -output data/spark --spark -k 10 -r 0.01 -s "\t" -m "local[4]"
+     *  -input data/data.txt -output data/spark --spark -k 10 -l 0.01 -s "\t" -m "local[4]"
+     *  -input data/data.txt -output data/spark -model data/spark --spark --ratings -s "\t" -m "local[4]"
      */
 
     @Option(name="-input", required=true, usage="Path to input file")
@@ -23,19 +22,26 @@ public class AlsToolConfig {
     @Option(name="-k", forbids={"-p"}, usage="Number of hidden factors to use during factorization")
     private int numFactors;
 
-    @Option(name="-r", forbids={"-p"}, usage="Regularization coefficient to use in ALS algorithm")
+    @Option(name="-l", aliases={"--lambda"}, forbids={"-p"}, usage="Regularization coefficient to use in ALS algorithm")
     private double regCoefficient;
 
     @Option(name="-output", required=true, usage="Path to output folder")
     private String outputDirectoryPath;
 
-    @Option(name="-f", aliases={"--factorize"}, forbids={"-p"},
+    @Option(name="-model", required=true, usage="Path to file with saved model.")
+    private String modelPath;
+
+    @Option(name="-f", aliases={"--factorize"}, forbids={"-p", "-r"},
             usage="Run AlsTool to perform factorization operation")
     private boolean factorizationOperation;
 
-    @Option(name="-p", aliases={"--preprocess"}, forbids={"-f"},
+    @Option(name="-p", aliases={"--preprocess"}, forbids={"-f", "-r"},
             usage="Run AlsTool to perform data preprocessing")
     private boolean preparationOperation;
+
+    @Option(name="-r", aliases={"--ratings"}, forbids={"-f", "-p"},
+            usage="Run AlsTool to calculate ratings for given users and items.")
+    private boolean ratingCalculationOperation;
 
     @Option(name="-L", aliases={"--local"}, forbids={"-S"},
             usage="Run AlsTool in local mode.")
@@ -67,7 +73,8 @@ public class AlsToolConfig {
 
     public enum OperationType {
         FACTORIZATION,
-        PREPROCESSING
+        PREPROCESSING,
+        RATING_CALCULATION
     }
 
     public enum ExecutionMode {
@@ -84,14 +91,16 @@ public class AlsToolConfig {
     }
 
     public OperationType getOperation() {
-        if (!preparationOperation) {
+        if (!preparationOperation && !ratingCalculationOperation) {
             factorizationOperation = true;
         }
 
         if (factorizationOperation) {
             return OperationType.FACTORIZATION;
-        } else {
+        } else if (preparationOperation) {
             return OperationType.PREPROCESSING;
+        } else {
+            return OperationType.RATING_CALCULATION;
         }
     }
 
@@ -121,6 +130,10 @@ public class AlsToolConfig {
 
     public int getNumWorkers() {
         return numWorkers;
+    }
+    
+    public String getModelPath() {
+        return modelPath;
     }
 }
 

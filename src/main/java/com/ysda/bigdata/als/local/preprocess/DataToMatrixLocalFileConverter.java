@@ -28,7 +28,7 @@ public class DataToMatrixLocalFileConverter {
             return;
         }
 
-        String separator = config.getLineSeparator();
+        String separator = String.valueOf(config.getLineSeparator());
         try {
             RatingDataRecord ratingRecord = scanner.nextRatingDataRecord(separator);
             while (ratingRecord != null) {

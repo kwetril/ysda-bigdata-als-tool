@@ -114,6 +114,24 @@ public class SparkAlsModel extends BaseAlsModel implements Serializable {
         }
     }
 
+    @Override
+    public void batchPredicition(String inputPath, String outputPath, final String lineSeparator) {
+        final String formatString = "%s\t%s\t%s";
+        context.textFile(inputPath).map(new Function<String, Tuple2<String, String>>() {
+            @Override
+            public Tuple2<String, String> call(String line) throws Exception {
+                String[] parts = line.split(lineSeparator);
+                return new Tuple2<>(parts[0], parts[1]);
+            }
+        }).map(new Function<Tuple2<String,String>, String>() {
+            @Override
+            public String call(Tuple2<String, String> userItem) throws Exception {
+                double rating = predict(userItem._1, userItem._2);
+                return String.format(formatString, userItem._1, userItem._2, rating);
+            }
+        }).saveAsTextFile(outputPath);
+    }
+
     static class MapRatingsFunction implements Function<Tuple2<String, Tuple2<String[], double[]>>, Tuple2<String, double[]>> {
         private Broadcast<FactorMatrix> broadcastedFactors;
         private double regCoefficient;
@@ -168,5 +186,9 @@ public class SparkAlsModel extends BaseAlsModel implements Serializable {
             rowFactorsMatrix = null;
             colFactorsMatrix = null;
         }
+    }
+
+    public void setContext(JavaSparkContext context) {
+        this.context = context;
     }
 }
