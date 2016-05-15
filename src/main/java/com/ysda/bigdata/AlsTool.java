@@ -1,10 +1,8 @@
 package com.ysda.bigdata;
 
 import com.ysda.bigdata.als.IAlsModel;
-import com.ysda.bigdata.als.local.ISparseMatrix;
 import com.ysda.bigdata.als.local.*;
-import com.ysda.bigdata.preprocess.DataToMatrixConverterFactory;
-import com.ysda.bigdata.preprocess.IDataToMatrixFileConverter;
+import com.ysda.bigdata.als.local.preprocess.DataToMatrixLocalFileConverter;
 import com.ysda.bigdata.utils.AlsToolConfig;
 import com.ysda.bigdata.utils.RatingDataRecord;
 import com.ysda.bigdata.utils.StopWatch;
@@ -45,7 +43,7 @@ public class AlsTool {
 
     private static void RunLocalMode(AlsToolConfig config) {
         if (config.getOperation() == AlsToolConfig.OperationType.PREPROCESSING) {
-            IDataToMatrixFileConverter converter = DataToMatrixConverterFactory.getConverter(config);
+            DataToMatrixLocalFileConverter converter = new DataToMatrixLocalFileConverter();
             converter.doConversion(config);
             return;
         } else {
@@ -72,12 +70,14 @@ public class AlsTool {
                     System.out.printf("Iteration time %s\n", iterTimer.getElapsedTime());
                 }
 
-                File outputFolder = new File(config.getOutputDirectoryPath());
-                if (outputFolder.exists()) {
-                    System.out.println("Output directory already exists.");
+                File outputFile = new File(config.getOutputDirectoryPath());
+                if (outputFile.exists()) {
+                    System.out.println("Output file already exists.");
                     return;
                 }
-                alsModel.save(config.getOutputDirectoryPath());
+                else {
+                    alsModel.save(config.getOutputDirectoryPath());
+                }
                 timer.stop();
                 System.out.printf("Elapsed time: %s ms", timer.getElapsedTime());
             } catch (IOException e) {

@@ -44,8 +44,8 @@ public class LocalAlsModel implements IAlsModel {
     }
 
     private double[] computeRowFromOptimization(SparseRow ratingsRow, FactorMatrix factorMatrix) {
-        IDenseMatrix rowFactorsSubmatrix = factorMatrix.getSubmatrix(ratingsRow.getColIndices());
-        IDenseMatrix transposedRowFactorsSubmatrix = rowFactorsSubmatrix.transpose();
+        DenseMatrix rowFactorsSubmatrix = factorMatrix.getSubmatrix(ratingsRow.getColIndices());
+        DenseMatrix transposedRowFactorsSubmatrix = rowFactorsSubmatrix.transpose();
         double[] result = transposedRowFactorsSubmatrix
                 .multiply(rowFactorsSubmatrix)
                 .addDiag(regCoefficient)

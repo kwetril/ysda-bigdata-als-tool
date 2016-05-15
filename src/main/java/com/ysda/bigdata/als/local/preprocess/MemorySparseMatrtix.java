@@ -1,4 +1,7 @@
-package com.ysda.bigdata.als.local;
+package com.ysda.bigdata.als.local.preprocess;
+
+import com.ysda.bigdata.als.local.ISparseMatrix;
+import com.ysda.bigdata.als.local.SparseRow;
 
 import java.util.ArrayList;
 import java.util.Iterator;

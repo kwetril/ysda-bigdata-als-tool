@@ -23,7 +23,7 @@ public class FactorMatrix {
         this.numFactors = numFactors;
     }
 
-    IDenseMatrix getSubmatrix(String[] rows) {
+    DenseMatrix getSubmatrix(String[] rows) {
         double[][] submatrixData = new double[rows.length][];
         for (int i = 0; i < rows.length; i++) {
             submatrixData[i] = getRow(rows[i]);

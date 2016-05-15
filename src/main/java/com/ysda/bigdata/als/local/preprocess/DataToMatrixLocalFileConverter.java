@@ -1,8 +1,6 @@
-package com.ysda.bigdata.preprocess;
+package com.ysda.bigdata.als.local.preprocess;
 
 import com.ysda.bigdata.als.local.ISparseMatrix;
-import com.ysda.bigdata.als.local.MemorySparseMatrixBuilder;
-import com.ysda.bigdata.als.local.SparseMatrixWriter;
 import com.ysda.bigdata.utils.AlsToolConfig;
 import com.ysda.bigdata.utils.FastScanner;
 import com.ysda.bigdata.utils.RatingDataRecord;
@@ -10,15 +8,12 @@ import com.ysda.bigdata.utils.StopWatch;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by kwetril on 4/12/16.
  */
-public class DataToMatrixLocalFileConverter implements IDataToMatrixFileConverter {
+public class DataToMatrixLocalFileConverter {
     public void doConversion(AlsToolConfig config) {
         StopWatch timer = new StopWatch();
         timer.start();

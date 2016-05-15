@@ -10,8 +10,8 @@ import java.util.concurrent.*;
 public class LocalMultiThreadAlsAlgorithm {
     private ISparseMatrix ratingMatrix;
     private ISparseMatrix transposedRatingMatrix;
-    private IDenseMatrix rowFactorsMatrix;
-    private IDenseMatrix colFactorsMatrix;
+    private DenseMatrix rowFactorsMatrix;
+    private DenseMatrix colFactorsMatrix;
     private int numFactors;
     private double regCoefficient;
     private ThreadPoolExecutor threadPool;
