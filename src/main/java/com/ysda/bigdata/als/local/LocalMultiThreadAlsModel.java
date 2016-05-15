@@ -3,12 +3,11 @@ package com.ysda.bigdata.als.local;
 import com.ysda.bigdata.als.*;
 
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by kwetril on 4/13/16.
  */
-public class LocalMultiThreadAlsModel extends BaseLocalAlsModel {
+public class LocalMultiThreadAlsModel extends BaseAlsModel {
     private ISparseMatrix ratingMatrix;
     private ISparseMatrix transposedRatingMatrix;
     private ThreadPoolExecutor threadPool;

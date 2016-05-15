@@ -1,18 +1,20 @@
-package com.ysda.bigdata.als.local;
+package com.ysda.bigdata.als;
 
 import com.ysda.bigdata.als.BaseAlsInitConfig;
 import com.ysda.bigdata.als.IAlsModel;
+import com.ysda.bigdata.als.local.FactorMatrix;
 import com.ysda.bigdata.utils.FastScanner;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by kwetril on 5/15/16.
  */
-public abstract class BaseLocalAlsModel implements IAlsModel {
+public abstract class BaseAlsModel implements IAlsModel {
     protected FactorMatrix rowFactorsMatrix;
     protected FactorMatrix colFactorsMatrix;
     protected int numFactors;

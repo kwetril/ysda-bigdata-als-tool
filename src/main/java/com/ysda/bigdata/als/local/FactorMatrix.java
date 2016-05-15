@@ -1,5 +1,8 @@
 package com.ysda.bigdata.als.local;
 
+import scala.Tuple2;
+
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -7,15 +10,14 @@ import java.util.Random;
 /**
  * Created by kwetril on 5/15/16.
  */
-public class FactorMatrix {
+public class FactorMatrix implements Serializable {
     private HashMap<String, double[]> data;
-    private Random generator;
+    private Random generator = new Random();
     private int numFactors;
 
     public FactorMatrix(int numFactors) {
+        data = new HashMap<>();
         this.numFactors = numFactors;
-        this.data = new HashMap<>();
-        this.generator = new Random();
     }
 
     public FactorMatrix(HashMap<String, double[]> data, int numFactors) {
@@ -23,7 +25,15 @@ public class FactorMatrix {
         this.numFactors = numFactors;
     }
 
-    DenseMatrix getSubmatrix(String[] rows) {
+    public FactorMatrix(List<Tuple2<String, double[]>> userFactorsList) {
+        data = new HashMap<>();
+        for (Tuple2<String, double[]> factors : userFactorsList) {
+            data.put(factors._1, factors._2);
+            numFactors = factors._2.length;
+        }
+    }
+
+    public DenseMatrix getSubmatrix(String[] rows) {
         double[][] submatrixData = new double[rows.length][];
         for (int i = 0; i < rows.length; i++) {
             submatrixData[i] = getRow(rows[i]);
@@ -31,7 +41,7 @@ public class FactorMatrix {
         return new DenseMatrix(submatrixData);
     }
 
-    double[] getRow(String row) {
+    public double[] getRow(String row) {
         if (data.containsKey(row)) {
             return data.get(row);
         } else {
@@ -44,17 +54,17 @@ public class FactorMatrix {
         }
     }
 
-    void setRow(String row, double[] values) {
+    public void setRow(String row, double[] values) {
         synchronized (data) {
             data.put(row, values);
         }
     }
 
-    HashMap<String, double[]> getData() {
+    public HashMap<String, double[]> getData() {
         return data;
     }
 
-    int getNumFactors() {
+    public int getNumFactors() {
         return numFactors;
     }
 }

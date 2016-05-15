@@ -1,18 +1,12 @@
 package com.ysda.bigdata.als.local;
 
 import com.ysda.bigdata.als.BaseAlsInitConfig;
-import com.ysda.bigdata.als.IAlsModel;
-import com.ysda.bigdata.utils.FastScanner;
-
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import com.ysda.bigdata.als.BaseAlsModel;
 
 /**
  * Created by kwetril on 5/14/16.
  */
-public class LocalAlsModel extends BaseLocalAlsModel {
+public class LocalAlsModel extends BaseAlsModel {
     private ISparseMatrix ratingMatrix;
     private ISparseMatrix transposedRatingMatrix;
 

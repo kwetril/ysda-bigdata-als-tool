@@ -11,9 +11,8 @@ public class AlsToolConfig {
     /** Config example
      *  -input data/preprocessed/matrix.dat -t-input data/preprocessed/transposed-matrix.dat -k 10 -r 0.01 -output data/factorized --factorize
      *  -input data/data.txt -output data/preprocessed -s "\t" --preprocess
-     *  -input data/data.txt -output data/preprocessed --spark
+     *  -input data/data.txt -output data/spark --spark -k 10 -r 0.01 -s "\t" -m "local[4]"
      */
-
 
     @Option(name="-input", required=true, usage="Path to input file")
     private String inputFilePath;
@@ -21,10 +20,10 @@ public class AlsToolConfig {
     @Option(name="-t-input", depends={"-f"}, usage="Path to transposed rating matrix file")
     private String transposedInputFilePath;
 
-    @Option(name="-k", depends={"-f"}, usage="Number of hidden factors to use during factorization")
+    @Option(name="-k", forbids={"-p"}, usage="Number of hidden factors to use during factorization")
     private int numFactors;
 
-    @Option(name="-r", depends={"-f"}, usage="Regularization coefficient to use in ALS algorithm")
+    @Option(name="-r", forbids={"-p"}, usage="Regularization coefficient to use in ALS algorithm")
     private double regCoefficient;
 
     @Option(name="-output", required=true, usage="Path to output folder")
@@ -48,9 +47,9 @@ public class AlsToolConfig {
 
     @Option(name="-m", aliases={"--master"}, depends={"-S"},
             usage="Define Spark master.")
-    private String sparkMaster;
+    private String sparkMaster = "local";
 
-    @Option(name="-s", aliases={"--separator"}, depends={"-p"},
+    @Option(name="-s", aliases={"--separator"},
             usage="Separator to split row-column-rating line")
     private String lineSeparator = ",";
 
