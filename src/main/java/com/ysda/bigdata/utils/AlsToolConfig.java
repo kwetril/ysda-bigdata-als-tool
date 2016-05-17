@@ -28,7 +28,7 @@ public class AlsToolConfig {
     @Option(name="-output", required=true, usage="Path to output folder")
     private String outputDirectoryPath;
 
-    @Option(name="-model", required=true, usage="Path to file with saved model.")
+    @Option(name="-model", usage="Path to file with saved model.")
     private String modelPath;
 
     @Option(name="-f", aliases={"--factorize"}, forbids={"-p", "-r"},
